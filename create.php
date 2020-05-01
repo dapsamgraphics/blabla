@@ -1,5 +1,7 @@
 <?php
 /**	
+ * Blibli Account Creator
+ * 
  * @release 2020
  * 
  * @author eco.nxn
@@ -119,7 +121,7 @@ class blibli extends curl{
 
         $method   = 'GET';
 
-        $endpoint = 'https://econxn.id/api/v1/email/create.php?username='.$username;
+        $endpoint = 'https://econxn.id/api/v1/email/create?username='.$username;
 
         $email = $this->request ($method, $endpoint, $param=NULL, $header=NULL);
    
@@ -138,7 +140,7 @@ class blibli extends curl{
     function inbox($email) {
 
         $method   = 'GET';
-        $endpoint = 'https://econxn.id/api/v1/email/inbox.php?email='.$email;
+        $endpoint = 'https://econxn.id/api/v1/email/inbox?email='.$email;
 
         $inbox = $this->request ($method, $endpoint, $param=null, $header=null);
 
@@ -278,7 +280,7 @@ $version = 'V1.1';
 $json_ver = json_decode(file_get_contents('https://econxn.id/blabla.json'));
 if(isset($json_ver->version)) {
     if($version != $json_ver->version) {
-        echo "[i] Mohon perbaharui ke versi yang terbaru!\n\n";
+        echo "[i] Mohon perbaharui ke versi yang terbaru!\n\n".$json_ver->additional;
         die();
     }
 }
