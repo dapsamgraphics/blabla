@@ -276,10 +276,14 @@ class blibli extends curl{
  */
 $version = 'V1.1';
 $json_ver = json_decode(file_get_contents('https://econxn.id/blabla.json'));
-if($version != $json_ver->version) {
-    echo "[i] Mohon perbaharui ke versi yang terbaru!\n\n";
-    die();
+if(isset($json_ver->version)) {
+    if($version != $json_ver->version) {
+        echo "[i] Mohon perbaharui ke versi yang terbaru!\n\n";
+        die();
+    }
 }
+
+// style 
 // style 
 echo "\n";
 echo "     Blibli x SGB TEAM ```\n";
