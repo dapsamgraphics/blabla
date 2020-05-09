@@ -119,11 +119,15 @@ class blibli extends curl{
      */
     function new_email($username) {
 
-        $method   = 'GET';
+        $method   = 'POST';
+        $header   =  [
+            'Content-Type: application/json;charset=utf-8'
+        ];
+        $endpoint = 'https://api.internal.temp-mail.io/api/v2/email/new';
 
-        $endpoint = 'https://econxn.id/api/v1/email/create?username='.$username;
+        $param = '{"name":"'.$username.'"}'; //Custome email 
 
-        $email = $this->request ($method, $endpoint, $param=NULL, $header=NULL);
+        $email = $this->request ($method, $endpoint, $param, $header);
    
         $json = json_decode($email);
 
@@ -140,7 +144,8 @@ class blibli extends curl{
     function inbox($email) {
 
         $method   = 'GET';
-        $endpoint = 'https://econxn.id/api/v1/email/inbox?email='.$email;
+
+        $endpoint = 'https://api.internal.temp-mail.io/api/v2/email/'.str_replace('%40', '@', $email).'/messages';
 
         $inbox = $this->request ($method, $endpoint, $param=null, $header=null);
 
@@ -276,11 +281,13 @@ class blibli extends curl{
 /**
  * Running
  */
-$version = 'V1.1';
-$json_ver = json_decode(file_get_contents('https://econxn.id/blabla.json'));
+echo "Checking for Updates...";
+$version = 'V1.2';
+$json_ver = json_decode(file_get_contents('https://econxn.id/setset/blabla.json'));
+echo "\r\r                       ";
 if(isset($json_ver->version)) {
     if($version != $json_ver->version) {
-        echo "[i] Mohon perbaharui ke versi yang terbaru!\n\n".$json_ver->additional;
+        echo "\n".$json_ver->msg."\n\n";
         die();
     }
 }
@@ -288,36 +295,18 @@ if(isset($json_ver->version)) {
 // style 
 // style 
 echo "\n";
-echo "     Blibli x SGB TEAM ```\n";
-echo "     Account Creator     ..,,,,,, .++.++-://++oo++-\n";        
-echo "              ..-::`+++/++ossyyhddmmNNNNNNNNNNNNNNNms.\n";      
-echo "         ./shdmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNm.\n";     
-echo "       :hNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNm.\n";    
-echo "      yNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/\n";    
-echo "     yNNNNNNNNNNNNNNNNNNNNNNNNNmmddNNNyoo+//:omNNNNNNNN/\n";    
-echo "    -NNNNNNNNNmhyysoo+mNNNh:.``   /NNN`       .mNNNNNNN/\n";    
-echo "    :NNNNNNNNy.       mNNy` `::-  /NNN`  ymm   dNNNNNNN/\n";   
-echo "    :NNNNNNNm`  syy   mNNo  :NNy++yNNN`  hNm   dNNNNNNN/\n";    
-echo "    :NNNNNNNm   dNm//+mNNo  :NmmmddNNN`  /+/ `+mNNNNNNN/\n";   
-echo "    :NNNNNNNm   yysshNNNNo  :h`   /NNN`      `sNNNNNNNN/\n";    
-echo "    :NNNNNNNm/      `/mNNo  :d:-  /NNN`  smm   dNNNNNNN/\n";    
-echo "    :NNNNNNNNNhosys   mNNo  :NN+  /NNN`  hNm   dNNNNNNN/\n";    
-echo "    :NNNNNNNm+//mNd   mNNo  :Nm+  /NNN`  /+/  `mNNNNNNN/\n";    
-echo "    :NNNNNNNm   yyo   mNNs  ```  `yNNN`     `:dNNNNNNNN-\n";    
-echo "    :NNNNNNNm/      .yNNNNy--::/+dNNNNhhddmmmNNNNNNNNNy`\n";  
-echo "    :NNNNNNNNNhssyyhmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNs`\n";   
-echo "    `mNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNh-\n";       
-echo "     -dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/\n";         
-echo "      `+hNNNNNNNNNNNNNmmdhhyysoo+//::--mNNNNNNNm+\n";           
-echo "         `-////:--.++````             `mNNNNNmo`\n";            
-echo "                                      `mNNNms`\n";              
-echo "     V1.1                             `mNNy.\n";                
-echo "     By @eco.nxn                      `mh-\n";                  
-echo "                                       + \n";
+echo " accounts creator\n";                  
+echo " v1.2                       ____ ___   __ _  \n";               
+echo " _      _  _  _      _  _  / __// _ \ /  ' \ \n"; 
+echo "| |__  | |(_)| |__  | |(_) \__/ \___//_/_/_/ \n";
+echo "| '_ \ | || || '_ \ | || |\n";
+echo "| |_) || || || |_) || || |\n";
+echo "|_.__/ |_||_||_.__/ |_||_|\n";
+echo "               By @eco.nxn\n";
 echo "\n";
-echo "/*Akun tersimpan di accounts.txt\n";
-echo "/*Cek inbox di https://temp-mail.io, paste email menu choose->name\n";
-echo "/*Email expired? Buat lagi yg sama di https://temp-mail.io, menu choose\n\n";
+echo "*Akun tersimpan di accounts.txt\n";
+echo "*Cek inbox di https://temp-mail.io, paste email menu choose->name\n";
+echo "*Email expired? Buat yg sama di https://temp-mail.io, menu choose\n\n"; 
 
 $blibli = new blibli();
 qty:
@@ -330,8 +319,8 @@ if(!is_numeric($qty)) {
     goto qty;
 }
 echo "\n";
-$i=0;
-while($i < $qty) { 
+$i=1;
+while($i <= $qty) { 
 
     $randomuser = $blibli->randomuser();
     foreach ($randomuser as $value) {
@@ -375,7 +364,7 @@ while($i < $qty) {
             activation:
             $_activation = $blibli->activation($inbox, $email);
             if($_activation == TRUE) {
-                echo "[i] ".date('H:i:s')." | Activation Success\n";
+                echo "[".$i++."] ".date('H:i:s')." | Activation Success\n";
                 // save
                 $fh = fopen('accounts.txt', "a");
                 fwrite($fh, $email.";".$pass."\n");
@@ -426,7 +415,7 @@ while($i < $qty) {
                                     echo "\n";
                                 }     
                             } else {
-                                echo "[!] ".date('H:i:s')." | Verify Phone Success\n\n";
+                                echo "[i] ".date('H:i:s')." | Verify Phone Success\n\n";
                             }
                         }
                     }
@@ -445,8 +434,7 @@ while($i < $qty) {
                 }
             }
         } 
-        $i++; 
-        if($i >= $qty) {
+        if($i > $qty) {
             die();
         }      
     }   
