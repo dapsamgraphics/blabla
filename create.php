@@ -225,10 +225,39 @@ class blibli extends curl{
         
         $json = json_decode($login);
 
-        if(!isset($json->access_token)) {
+        if(!isset($json->access_token)) { echo $login;
             return FALSE;
         } else {
             return $json->access_token;
+        }         
+    }
+
+    /**
+     * Referal Link
+     */
+    function referal_link($bearer) { 
+
+        $method   = 'GET';
+
+        $header = [
+            'User-Agent: BlibliAndroid/6.9.0(2632)',
+            'Cookie: Blibli-Access-Token='.$bearer
+        ];
+
+        $endpoint = 'https://www.blibli.com/backend/member-voucher/referral/parent';
+        
+        $reff = $this->request ($method, $endpoint, $param=NULL, $header);
+        
+        $json = json_decode($reff);
+
+        if(isset($json->data->referralLink)) {
+            if(!empty($json->data->referralLink)) {
+                return $json->data->referralLink;
+            } else {
+                return FALSE;
+            }
+        } else {
+            return FALSE;
         }         
     }
 
@@ -285,7 +314,7 @@ class blibli extends curl{
  * Running
  */
 echo "Checking for Updates...";
-$version = 'V1.3.1';
+$version = 'V1.4';
 $json_ver = json_decode(file_get_contents('https://econxn.id/setset/blabla.json'));
 echo "\r\r                       ";
 if(isset($json_ver->version)) {
@@ -305,7 +334,7 @@ if(isset($json_ver->version)) {
 // style 
 echo "\n";
 echo " accounts creator\n";                  
-echo " v1.3.1                     ____ ___   __ _  \n";               
+echo " v1.4 Beta                  ____ ___   __ _  \n";               
 echo " _      _  _  _      _  _  / __// _ \ /  ' \ \n"; 
 echo "| |__  | |(_)| |__  | |(_) \__/ \___//_/_/_/ \n";
 echo "| '_ \ | || || '_ \ | || |\n";
@@ -314,138 +343,239 @@ echo "|_.__/ |_||_||_.__/ |_||_|\n";
 echo "               By @eco.nxn\n";
 echo "\n";
 echo "*Akun tersimpan di accounts.txt\n";
+echo "*Referal link tersimpan di referal.txt\n";
 echo "*Cek inbox di https://temp-mail.io, paste email menu choose->name\n";
 echo "*Email expired? Buat yg sama di https://temp-mail.io, menu choose\n\n"; 
 
 $blibli = new blibli();
-qty:
-echo "[?] Jumlah akun :";
-$qty = trim(fgets(STDIN));
-if(strtolower($qty) == 'q') {
-    die(); 
-}
-if(!is_numeric($qty)) {
-    goto qty;
-}
-echo "\n";
-$i=1;
-while($i <= $qty) { 
 
-    $randomuser = $blibli->randomuser();
-    foreach ($randomuser as $value) {
-        $exp_email  = explode("@", $value->Email);
-        $username   = $exp_email[0];
-        $pass       = ucwords($blibli->random_str(8)).rand(1,9); 
-        
-        new_email:
-        echo "[i] ".date('H:i:s')." | Creating new email...\n";
-        $email = $blibli->new_email($username);
-        if($email == FALSE) {
-            echo "[!] ".date('H:i:s')." | Failure while generating new email.\n";
-            sleep(1);
-            goto new_email;
-        }
-          
-        $regis = $blibli->regis($email, $pass);
-        if($regis == FALSE) {
-            echo "[!] ".date('H:i:s')." | Registration Failed!\n\n";
-            sleep(2);
-            continue;
-        }
-        
-        echo "[i] ".date('H:i:s')." | Registration Success [Email:".$email.";Pass:".$pass."]\n";           
-        // cek inbox
-        echo "[i] ".date('H:i:s')." | Checking email...\n";
-        $ib=0;
-        inbox:
-        $inbox = $blibli->inbox($email);
-        if($inbox == FALSE) { 
-            sleep(3);
-            $ib = $ib+1;
-            if($ib<=15) {
-                goto inbox;
-            } else {
-                echo "[!] ".date('H:i:s')." | Skip..Activation Link not found\n\n";
-            }
-        } else {          
-            //aktivasi akun
-            $ac=0;
-            activation:
-            $_activation = $blibli->activation($inbox, $email);
-            if($_activation == TRUE) {
-                echo "[".$i++."] ".date('H:i:s')." | Activation Success\n";
-                // save
-                $fh = fopen('accounts.txt', "a");
-                fwrite($fh, $email.";".$pass."\n");
-                fclose($fh);
+menu:
+echo "Menu:\n";
+echo "[1] Registrasi akun\n";
+echo "[2] Ambil Referal Link\n";
+echo "[?] Choice: ";
+$choice = trim(fgets(STDIN));
+echo "\n"; 
 
-                verif_phone:
-                echo "[?] Verify Phone? [Y/N] ";
-                $verif_phone = trim(fgets(STDIN));
-                if(strtolower($verif_phone) == 'y') { 
-                    $login = $blibli->login($email, $pass);
-                    if($login == FALSE) {
-                        echo "[!] ".date('H:i:s')." | Login failed!\n\n";
+switch ($choice) {
+    case '1':
+        # regis... 
+        qty:
+        echo "[?] Jumlah akun :";
+        $qty = trim(fgets(STDIN));
+        if(strtolower($qty) == 'q') {
+            die(); 
+        }
+        if(!is_numeric($qty)) { 
+            goto qty;
+        }
+        echo "\n";
+        $i=1;
+        while($i <= $qty) { 
+
+            $randomuser = $blibli->randomuser();
+            foreach ($randomuser as $value) {
+                $exp_email  = explode("@", $value->Email);
+                $username   = $exp_email[0];
+                $pass       = ucwords($blibli->random_str(8)).rand(1,9); 
+                
+                new_email:
+                echo "[i] ".date('H:i:s')." | Creating new email...\n";
+                $email = $blibli->new_email($username);
+                if($email == FALSE) {
+                    echo "[!] ".date('H:i:s')." | Failure while generating new email.\n";
+                    sleep(1);
+                    goto new_email;
+                }
+                
+                $regis = $blibli->regis($email, $pass);
+                if($regis == FALSE) {
+                    echo "[!] ".date('H:i:s')." | Registration Failed!\n\n";
+                    sleep(2);
+                    continue;
+                }
+                
+                echo "[i] ".date('H:i:s')." | Registration Success [Email:".$email.";Pass:".$pass."]\n";           
+                // cek inbox
+                echo "[i] ".date('H:i:s')." | Checking email...\n";
+                $ib=0;
+                inbox:
+                $inbox = $blibli->inbox($email);
+                if($inbox == FALSE) { 
+                    sleep(3);
+                    $ib = $ib+1;
+                    if($ib<=15) {
+                        goto inbox;
                     } else {
-                        $bearer = $login;
+                        echo "[!] ".date('H:i:s')." | Skip..Activation Link not found\n\n";
+                    }
+                } else {          
+                    //aktivasi akun
+                    $ac=0;
+                    activation:
+                    $_activation = $blibli->activation($inbox, $email);
+                    if($_activation == TRUE) {
+                        echo "[".$i++."] ".date('H:i:s')." | Activation Success\n";
+                        // save
+                        $fh = fopen('accounts.txt', "a");
+                        fwrite($fh, $email.";".$pass."\n");
+                        fclose($fh);
 
-                        input_phone:
-                        echo "[?] Enter Phone :";
-                        $phone = trim(fgets(STDIN));
-                        if(strtolower($phone) == 'z') {
-                            die(); 
-                        }
-                        if(!is_numeric($phone)) {
-                            goto input_phone;
-                        }
-                        send_otp:
-                        $send_otp = $blibli->send_otp($phone, $bearer);
-                        if($send_otp == FALSE) {
-                            echo "[!] ".date('H:i:s')." | Send OTP failed!\n";
-                            goto input_phone;
-                        } else {
-                            $io=0;
-                            input_otp:
-                            echo "[?] Enter OTP [max.5x] :";
-                            $otp = trim(fgets(STDIN));
-                            if (strtolower($otp) == 'q') {
-                                die(); 
-                            }
-                            if(!is_numeric($otp)) {
-                                goto input_otp;
-                            } 
-                            $verif_otp = $blibli->verif_otp($otp, $bearer);
-                            if($verif_otp == FALSE) {
-                                echo "[!] ".date('H:i:s')." | Verif OTP Code failed!\n";
-                                $io = $io+1;
-                                if($io < 5) {
-                                    goto input_otp;
+                        verif_phone:
+                        echo "[?] Verify Phone? [Y/N] ";
+                        $verif_phone = trim(fgets(STDIN));
+                        if(strtolower($verif_phone) == 'y') { 
+                            $lgo=0;
+                            loggin:
+                            $login = $blibli->login($email, $pass);
+                            if($login == FALSE) {
+                                $lgo = $lgo+1;
+                                if($lgo<=5) {
+                                    goto loggin;
                                 } else {
-                                    echo "\n";
-                                }     
+                                    echo "[!] ".date('H:i:s')." | Login failed!\n\n";  
+                                }
+                                
                             } else {
-                                echo "[i] ".date('H:i:s')." | Verify Phone Success\n\n";
+                                $bearer = $login;
+
+                                input_phone:
+                                echo "[?] Enter Phone :";
+                                $phone = trim(fgets(STDIN));
+                                if(strtolower($phone) == 'z') {
+                                    die(); 
+                                }
+                                if(!is_numeric($phone)) {
+                                    goto input_phone;
+                                }
+                                send_otp:
+                                $send_otp = $blibli->send_otp($phone, $bearer);
+                                if($send_otp == FALSE) {
+                                    echo "[!] ".date('H:i:s')." | Send OTP failed!\n";
+                                    goto input_phone;
+                                } else {
+                                    $io=0;
+                                    input_otp:
+                                    echo "[?] Enter OTP [max.5x] :";
+                                    $otp = trim(fgets(STDIN));
+                                    if (strtolower($otp) == 'q') {
+                                        die(); 
+                                    }
+                                    if(!is_numeric($otp)) {
+                                        goto input_otp;
+                                    } 
+                                    $verif_otp = $blibli->verif_otp($otp, $bearer);
+                                    if($verif_otp == FALSE) {
+                                        echo "[!] ".date('H:i:s')." | Verif OTP Code failed!\n";
+                                        $io = $io+1;
+                                        if($io < 5) {
+                                            goto input_otp;
+                                        } else {
+                                            echo "\n";
+                                        }     
+                                    } else {
+                                        echo "[i] ".date('H:i:s')." | Verify Phone Success\n\n";
+                                    }
+                                }
                             }
+                        } elseif (strtolower($verif_phone) == 'q') {
+                            die(); 
+                        } else {
+                            echo "\n";
+                        }
+
+                    } else {
+                        $ac = $ac+1;
+                        if($ac<=3) {
+                            goto activation;
+                        } else {
+                            echo "[i] ".date('H:i:s')." | Activation Failed!\n\n";
                         }
                     }
-                } elseif (strtolower($verif_phone) == 'q') {
-                    die(); 
-                } else {
-                    echo "\n";
+                } 
+                if($i > $qty) {
+                    die();
+                }      
+            }   
+        }
+        break;
+
+    case '2':
+        # Referal link... 
+        echo "(i) Paste akun di accounts.txt format email;password\n\n";
+
+        while (TRUE) {
+            $list = explode("\n",str_replace("\r","",file_get_contents("accounts.txt")));
+            $_no=1;
+            foreach ($list as $value) {
+                
+                if(empty($value)) {
+                    continue;
                 }
 
-            } else {
-                $ac = $ac+1;
-                if($ac<=3) {
-                    goto activation;
-                } else {
-                    echo "[i] ".date('H:i:s')." | Activation Failed!\n\n";
+                $exp_acc = explode(";", $value);
+                $email  = $exp_acc[0];
+                $pass   = $exp_acc[1];
+
+                $lg=0;
+                login:
+
+                if(file_exists('cookie.txt')) {
+                    unlink('cookie.txt');
                 }
-            }
-        } 
-        if($i > $qty) {
-            die();
-        }      
-    }   
+
+                echo "[".$_no++."] ".date('H:i:s')." | Login as ".$email."\n";
+
+                $login = $blibli->login($email, $pass);
+                if($login == FALSE) {
+                    $lg = $lg+1;
+                    if($lg<=5) {
+                        goto login;
+                    } else {
+                        echo "[!] ".date('H:i:s')." | Login failed!\n\n";   
+                    }
+                    
+                } else {
+                    $bearer = $login;
+
+                    $rf=0;
+                    reff:
+                    $referal_link = $blibli->referal_link($bearer);
+                    if($referal_link == FALSE) {
+                        $rf = $rf+1;
+                        if($rf<=100) {
+                            echo "[!] ".date('H:i:s')." | Referal link not found!";
+                            usleep(500000);
+                            echo "\r\r";
+                            echo "[!] ".date('H:i:s')." | retrying.. Please wait!";
+                            usleep(500000);
+                            echo "\r\r";
+                            goto reff;
+                        } else {
+                            echo "[!] ".date('H:i:s')." | Referal link not found! Try again later..\n\n";   
+                        }
+                    } else {
+                        if($_no <=2) {
+                            // save
+                            $new_line = "\n\n-------------- ".date('d-m-Y H:i')." --------------\n";
+                            $fh = fopen('referal.txt', "a");
+                            fwrite($fh, $new_line.$email.";".$pass.";".str_replace('?appsWebview=true', '', $referal_link)."\n");
+                            fclose($fh);
+                        } else {
+                            // save
+                            $fh = fopen('referal.txt', "a");
+                            fwrite($fh, $email.";".$pass.";".str_replace('?appsWebview=true', '', $referal_link)."\n");
+                            fclose($fh);
+                        }
+                        echo "[i] ".date('H:i:s')." | Referal link :".str_replace('?appsWebview=true', '', $referal_link)."\n\n";
+                    }
+                }
+            } 
+        }
+        break;
+    
+    default:
+        goto menu;
+        break;
 }
 ?>
