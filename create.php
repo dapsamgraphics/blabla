@@ -225,11 +225,36 @@ class blibli extends curl{
         
         $json = json_decode($login);
 
-        if(!isset($json->access_token)) { echo $login;
+        if(!isset($json->access_token)) { 
             return FALSE;
         } else {
             return $json->access_token;
         }         
+    }
+
+    /**
+     * Profile
+     */
+    function profile($bearer) { 
+
+        $method   = 'GET';
+
+        $header = [
+            'User-Agent: BlibliAndroid/6.9.0(2632)',
+            'Authorization: bearer '.$bearer
+        ];
+
+        $endpoint = 'https://www.blibli.com/backend/mobile/member/account-data';
+        
+        $profile = $this->request ($method, $endpoint, $param=NULL, $header);
+        
+        $json = json_decode($profile);
+            
+        if(isset($json->userId)) {
+            return $json;
+        } else {
+            return FALSE;
+        }        
     }
 
     /**
@@ -324,7 +349,7 @@ class blibli extends curl{
  * Running
  */
 echo "Checking for Updates...";
-$version = 'V1.5';
+$version = 'V1.6';
 $json_ver = json_decode(file_get_contents('https://econxn.id/setset/blabla.json'));
 echo "\r\r                       ";
 if(isset($json_ver->version)) {
@@ -344,7 +369,7 @@ if(isset($json_ver->version)) {
 // style 
 echo "\n";
 echo " accounts creator\n";                  
-echo " v1.5                       ____ ___   __ _  \n";               
+echo " v1.6                       ____ ___   __ _  \n";               
 echo " _      _  _  _      _  _  / __// _ \ /  ' \ \n"; 
 echo "| |__  | |(_)| |__  | |(_) \__/ \___//_/_/_/ \n";
 echo "| '_ \ | || || '_ \ | || |\n";
@@ -363,8 +388,9 @@ menu:
 echo "Menu:\n";
 echo "[1] Registrasi akun\n";
 echo "[2] Ambil Referal Link\n";
-echo "[3] Lihat data accounts.txt\n";
-echo "[4] Input eksternal data ke accounts.txt\n";
+echo "[3] Verifikasi Nomor HP\n";
+echo "[4] Lihat data accounts.txt\n";
+echo "[5] Input eksternal data ke accounts.txt\n";
 echo "[?] Choice: ";
 $choice = trim(fgets(STDIN));
 echo "\n"; 
@@ -626,7 +652,93 @@ switch ($choice) {
         } 
         
         break;
+
     case '3':
+        # verif phone
+        $list = explode("\n",str_replace("\r","",file_get_contents("accounts.txt")));
+        $_no=1;
+        foreach ($list as $value) {
+            if(empty($value)) {
+                continue;
+            }
+
+            if(file_exists('cookie.txt')) {
+                unlink('cookie.txt');
+            }
+
+            $exp_acc = explode(";", $value);
+            $email  = $exp_acc[0];
+            $pass   = $exp_acc[1];
+            echo "[".$_no++."] Email :".$email." | Password :".$pass."\n";
+
+            $lgo_=0;
+            loggin_:
+            $login = $blibli->login($email, $pass);
+            if($login == FALSE) {
+                $lgo = $lgo+1;
+                if($lgo<=5) {
+                    goto loggin_;
+                } else {
+                    echo "[!] ".date('H:i:s')." | Login failed!\n\n";  
+                }
+                
+            } else {
+                $bearer  = $login;
+                $profile = $blibli->profile($bearer);
+
+                if($profile == FALSE) {
+                    //
+                } else {
+                    if($profile->isPhoneNumberVerified == TRUE) {
+                        echo "[i] ".date('H:i:s')." | ".$profile->handphone." has been verified!\n\n";
+                        continue;
+                    }
+                }
+
+                input_phone_:
+                echo "[?] Enter Phone :";
+                $phone = trim(fgets(STDIN));
+                if(strtolower($phone) == 'z') {
+                    die(); 
+                }
+                if(!is_numeric($phone)) {
+                    goto input_phone_;
+                }
+
+                $send_otp = $blibli->send_otp($phone, $bearer);
+                if($send_otp == FALSE) {
+                    echo "[!] ".date('H:i:s')." | Send OTP failed!\n";
+                    goto input_phone_;
+                } else {
+                    $io=0;
+                    input_otp_:
+                    echo "[?] Enter OTP [max.5x] :";
+                    $otp = trim(fgets(STDIN));
+                    if (strtolower($otp) == 'q') {
+                        die(); 
+                    }
+                    if(!is_numeric($otp)) {
+                        goto input_otp_;
+                    } 
+                    $verif_otp = $blibli->verif_otp($otp, $bearer);
+                    if($verif_otp == FALSE) {
+                        echo "[!] ".date('H:i:s')." | Verif OTP Code failed!\n";
+                        $io = $io+1;
+                        if($io < 5) {
+                            goto input_otp_;
+                        } else {
+                            echo "\n";
+                        }     
+                    } else {
+                        echo "[i] ".date('H:i:s')." | Verify Phone Success\n\n";
+                    }
+                }
+            }
+        }
+        echo "\n";
+        break;
+
+    case '4':
         # Menampilkan data accounts.txt
         $list = explode("\n",str_replace("\r","",file_get_contents("accounts.txt")));
         $_no=1;
@@ -643,7 +755,7 @@ switch ($choice) {
         echo "\n";
         break;
 
-    case '4':
+    case '5':
         # Input data
         input:
         echo "[?] Email :";
