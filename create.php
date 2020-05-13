@@ -314,7 +314,7 @@ class blibli extends curl{
  * Running
  */
 echo "Checking for Updates...";
-$version = 'V1.4';
+$version = 'V1.4.1';
 $json_ver = json_decode(file_get_contents('https://econxn.id/setset/blabla.json'));
 echo "\r\r                       ";
 if(isset($json_ver->version)) {
@@ -334,7 +334,7 @@ if(isset($json_ver->version)) {
 // style 
 echo "\n";
 echo " accounts creator\n";                  
-echo " v1.4 Beta                  ____ ___   __ _  \n";               
+echo " v1.4.1 Beta                ____ ___   __ _  \n";               
 echo " _      _  _  _      _  _  / __// _ \ /  ' \ \n"; 
 echo "| |__  | |(_)| |__  | |(_) \__/ \___//_/_/_/ \n";
 echo "| '_ \ | || || '_ \ | || |\n";
@@ -353,6 +353,8 @@ menu:
 echo "Menu:\n";
 echo "[1] Registrasi akun\n";
 echo "[2] Ambil Referal Link\n";
+echo "[3] Lihat data accounts.txt\n";
+echo "[4] Input eksternal data ke accounts.txt\n";
 echo "[?] Choice: ";
 $choice = trim(fgets(STDIN));
 echo "\n"; 
@@ -502,78 +504,141 @@ switch ($choice) {
 
     case '2':
         # Referal link... 
-        echo "(i) Paste akun di accounts.txt format email;password\n\n";
+        echo "(i) Set waktu jam mulai format 24 jam WIB, format 08->benar | 08:00->salah\n";
+        echo "[?] Jam :";
+        $time = trim(fgets(STDIN));
+        echo "\n";
+        check_time:
+        if(strlen($time) == 1) {
+            $time = '0'.$time;
+            if($time == date('H')) {
+                $set_time = TRUE; 
+            } else {
+                $set_time = FALSE; 
+            }
+        } else {
+            if($time == date('H')) {
+                $set_time = TRUE;
+            } else {
+                $set_time = FALSE;
+            }
+        }
+        
+        if($set_time == FALSE) {
+            echo "\r\r[i] ".date('H:i:s')." | Menunggu pukul ".$time.":00";
+            sleep(3);
+            goto check_time;
+        }
 
-        while (TRUE) {
-            $list = explode("\n",str_replace("\r","",file_get_contents("accounts.txt")));
-            $_no=1;
-            foreach ($list as $value) {
-                
-                if(empty($value)) {
-                    continue;
-                }
+        echo "(i) Mengambil data accounts.txt...\n\n";
 
-                $exp_acc = explode(";", $value);
-                $email  = $exp_acc[0];
-                $pass   = $exp_acc[1];
+        $list = explode("\n",str_replace("\r","",file_get_contents("accounts.txt")));
+        $_no=1;
+        foreach ($list as $value) {
+            
+            if(empty($value)) {
+                continue;
+            }
 
-                $lg=0;
-                login:
+            $exp_acc = explode(";", $value);
+            $email  = $exp_acc[0];
+            $pass   = $exp_acc[1];
 
-                if(file_exists('cookie.txt')) {
-                    unlink('cookie.txt');
-                }
+            $lg=0;
+            login:
 
-                echo "[".$_no++."] ".date('H:i:s')." | Login as ".$email."\n";
+            if(file_exists('cookie.txt')) {
+                unlink('cookie.txt');
+            }
 
-                $login = $blibli->login($email, $pass);
-                if($login == FALSE) {
-                    $lg = $lg+1;
-                    if($lg<=5) {
-                        goto login;
-                    } else {
-                        echo "[!] ".date('H:i:s')." | Login failed!\n\n";   
-                    }
-                    
+            echo "[".$_no++."] ".date('H:i:s')." | Login as ".$email."\n";
+
+            $login = $blibli->login($email, $pass);
+            if($login == FALSE) {
+                $lg = $lg+1;
+                if($lg<=5) {
+                    goto login;
                 } else {
-                    $bearer = $login;
-
-                    $rf=0;
-                    reff:
-                    $referal_link = $blibli->referal_link($bearer);
-                    if($referal_link == FALSE) {
-                        $rf = $rf+1;
-                        if($rf<=100) {
-                            echo "[!] ".date('H:i:s')." | Referal link not found!";
-                            usleep(500000);
-                            echo "\r\r";
-                            echo "[!] ".date('H:i:s')." | retrying.. Please wait!";
-                            usleep(500000);
-                            echo "\r\r";
-                            goto reff;
-                        } else {
-                            echo "[!] ".date('H:i:s')." | Referal link not found! Try again later..\n\n";   
-                        }
-                    } else {
-                        if($_no <=2) {
-                            // save
-                            $new_line = "\n\n-------------- ".date('d-m-Y H:i')." --------------\n";
-                            $fh = fopen('referal.txt', "a");
-                            fwrite($fh, $new_line.$email.";".$pass.";".str_replace('?appsWebview=true', '', $referal_link)."\n");
-                            fclose($fh);
-                        } else {
-                            // save
-                            $fh = fopen('referal.txt', "a");
-                            fwrite($fh, $email.";".$pass.";".str_replace('?appsWebview=true', '', $referal_link)."\n");
-                            fclose($fh);
-                        }
-                        echo "[i] ".date('H:i:s')." | Referal link :".str_replace('?appsWebview=true', '', $referal_link)."\n\n";
-                    }
+                    echo "[!] ".date('H:i:s')." | Login failed!\n\n";   
                 }
-            } 
+                
+            } else {
+                $bearer = $login;
+
+                $rf=0;
+                reff:
+                $referal_link = $blibli->referal_link($bearer);
+                if($referal_link == FALSE) {
+                    $rf = $rf+1;
+                    if($rf<=100) {
+                        echo "[!] ".date('H:i:s')." | Referal link not found!";
+                        usleep(500000);
+                        echo "\r\r";
+                        echo "[!] ".date('H:i:s')." | retrying.. Please wait!";
+                        usleep(500000);
+                        echo "\r\r";
+                        goto reff;
+                    } else {
+                        echo "[!] ".date('H:i:s')." | Referal link not found! Try again later..\n\n";   
+                    }
+                } else {
+                    if($_no <=2) {
+                        // save
+                        $new_line = "\n\n-------------- ".date('d-m-Y H:i')." --------------\n";
+                        $fh = fopen('referal.txt', "a");
+                        fwrite($fh, $new_line.$email.";".$pass.";".str_replace('?appsWebview=true', '', $referal_link)."\n");
+                        fclose($fh);
+                    } else {
+                        // save
+                        $fh = fopen('referal.txt', "a");
+                        fwrite($fh, $email.";".$pass.";".str_replace('?appsWebview=true', '', $referal_link)."\n");
+                        fclose($fh);
+                    }
+                    echo "[i] ".date('H:i:s')." | Referal link :".str_replace('?appsWebview=true', '', $referal_link)."\n\n";
+                }
+            }
+        } 
+        
+        break;
+    case '3':
+        # Menampilkan data accounts.txt
+        $list = explode("\n",str_replace("\r","",file_get_contents("accounts.txt")));
+        $_no=1;
+        foreach ($list as $value) {
+            if(empty($value)) {
+                continue;
+            }
+
+            $exp_acc = explode(";", $value);
+            $email  = $exp_acc[0];
+            $pass   = $exp_acc[1];
+            echo "[".$_no++."] Email :".$email." | Password :".$pass."\n";
+        }
+        echo "\n";
+        break;
+
+    case '4':
+        # Input data
+        input:
+        echo "[?] Email :";
+        $email = trim(fgets(STDIN));
+        echo "[?] Pass  :";
+        $pass  = trim(fgets(STDIN));
+
+        // save
+        $fh = fopen('accounts.txt', "a");
+        fwrite($fh, $email.";".$pass."\n");
+        fclose($fh);
+        echo "[i] Success!\n\n";
+
+        again:
+        echo "[?] Input lagi [Y/N] :";
+        $again = trim(fgets(STDIN));
+        if(strtolower($again) == 'y') {
+            goto input; 
         }
         break;
-    
+
     default:
         goto menu;
         break;
