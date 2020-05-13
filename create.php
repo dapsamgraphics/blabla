@@ -244,21 +244,31 @@ class blibli extends curl{
             'Cookie: Blibli-Access-Token='.$bearer
         ];
 
-        $endpoint = 'https://www.blibli.com/backend/member-voucher/referral/parent';
+        $endpoint_ = 'https://www.blibli.com/backend/member-voucher/referral/parent/join';
         
-        $reff = $this->request ($method, $endpoint, $param=NULL, $header);
+        $reff_ = $this->request ($method, $endpoint_, $param=NULL, $header);
         
-        $json = json_decode($reff);
+        $json_ = json_decode($reff_);
 
-        if(isset($json->data->referralLink)) {
-            if(!empty($json->data->referralLink)) {
-                return $json->data->referralLink;
+        if($json_->code == 200) {
+            $endpoint = 'https://www.blibli.com/backend/member-voucher/referral/parent';
+        
+            $reff = $this->request ($method, $endpoint, $param=NULL, $header);
+            
+            $json = json_decode($reff);
+
+            if(isset($json->data->referralLink)) {
+                if(!empty($json->data->referralLink)) {
+                    return $json->data->referralLink;
+                } else {
+                    return FALSE;
+                }
             } else {
                 return FALSE;
             }
         } else {
             return FALSE;
-        }         
+        }        
     }
 
     /**
@@ -314,7 +324,7 @@ class blibli extends curl{
  * Running
  */
 echo "Checking for Updates...";
-$version = 'V1.4.1';
+$version = 'V1.5';
 $json_ver = json_decode(file_get_contents('https://econxn.id/setset/blabla.json'));
 echo "\r\r                       ";
 if(isset($json_ver->version)) {
@@ -334,7 +344,7 @@ if(isset($json_ver->version)) {
 // style 
 echo "\n";
 echo " accounts creator\n";                  
-echo " v1.4.1 Beta                ____ ___   __ _  \n";               
+echo " v1.5                       ____ ___   __ _  \n";               
 echo " _      _  _  _      _  _  / __// _ \ /  ' \ \n"; 
 echo "| |__  | |(_)| |__  | |(_) \__/ \___//_/_/_/ \n";
 echo "| '_ \ | || || '_ \ | || |\n";
