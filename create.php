@@ -504,20 +504,17 @@ switch ($choice) {
 
     case '2':
         # Referal link... 
-        echo "(i) Set waktu jam mulai format 24 jam WIB, format 08->benar | 08:00->salah\n";
-        echo "[?] Jam :";
+        echo "(i) Set waktu jam mulai format 24 jam WIB, format 08:00->benar | 8:00->salah\n";
+        set_time:
+        echo "[?] Pukul :";
         $time = trim(fgets(STDIN));
+
         echo "\n";
         check_time:
-        if(strlen($time) == 1) {
-            $time = '0'.$time;
-            if($time == date('H')) {
-                $set_time = TRUE; 
-            } else {
-                $set_time = FALSE; 
-            }
+        if(strlen($time) != 5) {
+            goto set_time;
         } else {
-            if($time == date('H')) {
+            if($time <= date('H:i')) {
                 $set_time = TRUE;
             } else {
                 $set_time = FALSE;
@@ -525,12 +522,33 @@ switch ($choice) {
         }
         
         if($set_time == FALSE) {
-            echo "\r\r[i] ".date('H:i:s')." | Menunggu pukul ".$time.":00";
-            sleep(3);
+            echo "\r\r[i] ".date('H:i:s')." | Menunggu pukul ".$time." ";
+            switch ($msg) {
+                case '':
+                    echo "Sabar..";
+                    $msg = 'Sabar';
+                    break;
+                
+                case 'Sabar':
+                    echo "Ya.....";
+                    $msg = 'Ya';
+                    break;
+
+                case 'Ya':
+                    echo "Bang...";
+                    $msg = 'Bang';
+                    break;
+
+                case 'Bang':
+                    echo ".......";
+                    $msg = '';
+                    break;
+            }
+            sleep(1);
             goto check_time;
         }
 
-        echo "(i) Mengambil data accounts.txt...\n\n";
+        echo "\n\n(i) Mengambil data accounts.txt...\n\n";
 
         $list = explode("\n",str_replace("\r","",file_get_contents("accounts.txt")));
         $_no=1;
