@@ -519,46 +519,44 @@ switch ($choice) {
         echo "[?] Pukul :";
         $time = trim(fgets(STDIN));
 
-        echo "\n";
-        check_time:
         if(strlen($time) != 5) {
             goto set_time;
-        } else {
-            if($time <= date('H:i')) {
-                $set_time = TRUE;
-            } else {
-                $set_time = FALSE;
-            }
-        }
+        } 
+       
+        echo "\n(i) Mengambil data accounts.txt...";
         
-        if($set_time == FALSE) {
-            echo "\r\r[i] ".date('H:i:s')." | Menunggu pukul ".$time." ";
-            switch ($msg) {
-                case '':
-                    echo "Sabar..";
-                    $msg = 'Sabar';
-                    break;
-                
-                case 'Sabar':
-                    echo "Ya.....";
-                    $msg = 'Ya';
-                    break;
+        if($time > date('H:i')) { 
+            echo "\n\n";
+            waiting:
+            if($time > date('H:i')) {
+                echo "\r\r[i] ".date('H:i:s')." | Menunggu pukul ".$time." ";
+                switch ($msg) {
+                    case '':
+                        echo "Sabar..";
+                        $msg = 'Sabar';
+                        break;
+                    
+                    case 'Sabar':
+                        echo "Ya.....";
+                        $msg = 'Ya';
+                        break;
 
-                case 'Ya':
-                    echo "Bang...";
-                    $msg = 'Bang';
-                    break;
+                    case 'Ya':
+                        echo "Bang...";
+                        $msg = 'Bang';
+                        break;
 
-                case 'Bang':
-                    echo ".......";
-                    $msg = '';
-                    break;
-            }
-            sleep(1);
-            goto check_time;
+                    case 'Bang':
+                        echo ".......";
+                        $msg = '';
+                        break;
+                }
+                sleep(1);
+                goto waiting;
+            }   
         }
 
-        echo "\n\n(i) Mengambil data accounts.txt...\n\n";
+        echo "\n\n";
 
         $list = explode("\n",str_replace("\r","",file_get_contents("accounts.txt")));
         $_no=1;
@@ -598,7 +596,7 @@ switch ($choice) {
                 $referal_link = $blibli->referal_link($bearer);
                 if($referal_link == FALSE) {
                     $rf = $rf+1;
-                    if($rf<=100) {
+                    if($rf<=500) {
                         echo "[!] ".date('H:i:s')." | Referal link not found!";
                         usleep(500000);
                         echo "\r\r";
